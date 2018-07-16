@@ -4,7 +4,7 @@ var newMap;
 /**
  * Initialize map as soon as the page is loaded.
  */
-document.addEventListener('DOMContentLoaded', (event) => {  
+document.addEventListener('DOMContentLoaded', (event) => {
   initMap();
 });
 
@@ -15,26 +15,26 @@ initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);
-    } else {      
+    } else {
       self.newMap = L.map('map', {
         center: [restaurant.latlng.lat, restaurant.latlng.lng],
         zoom: 16,
         scrollWheelZoom: false
       });
       L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-        mapboxToken: '<your MAPBOX API KEY HERE>',
+        mapboxToken: 'pk.eyJ1IjoiYWhtYWQyMDA4IiwiYSI6ImNqam56eThndzI2cHAzbHNvdnh0Z3VybnIifQ.HgpR4yVT5dJb_mJXXkFCrQ',
         maxZoom: 18,
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
           '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
           'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        id: 'mapbox.streets'    
+        id: 'mapbox.streets'
       }).addTo(newMap);
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
     }
   });
-}  
- 
+}
+
 /* window.initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
@@ -89,6 +89,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.alt = `This is an image of the restaurant ${restaurant.name}`;
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -106,6 +107,17 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
  */
 fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => {
   const hours = document.getElementById('restaurant-hours');
+  hours.setAttribute('tabindex', '0');
+  const dayTitle = document.createElement('th');
+  dayTitle.setAttribute('scope', 'col');
+  dayTitle.innerHTML = '<strong>Days</strong>';
+  hours.appendChild(dayTitle);
+
+  const hoursTitle = document.createElement('th');
+  hoursTitle.setAttribute('scope', 'col');
+  hoursTitle.innerHTML = "<strong>Hours</strong>";
+  hours.appendChild(hoursTitle);
+
   for (let key in operatingHours) {
     const row = document.createElement('tr');
 
@@ -119,14 +131,23 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
     hours.appendChild(row);
   }
+  myCaption();
 }
 
+//Create a caption for the table
+myCaption = () => {
+  let myTable = document.getElementById('restaurant-hours');
+  let myCap = myTable.createCaption();
+  myCap.innerHTML = '<strong>Operating hours</strong>';
+  myCap.setAttribute('class', 'operation_hours');
+};
 /**
  * Create all reviews HTML and add them to the webpage.
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
+  title.setAttribute('aria-labelledby', 'Reviews');
   title.innerHTML = 'Reviews';
   container.appendChild(title);
 
@@ -148,6 +169,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
  */
 createReviewHTML = (review) => {
   const li = document.createElement('li');
+  li.setAttribute('tabindex', '0');
+  li.setAttribute('aria-labelledby', 'Review by ' + review.name);
   const name = document.createElement('p');
   name.innerHTML = review.name;
   li.appendChild(name);
